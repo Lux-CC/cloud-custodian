@@ -150,6 +150,7 @@ class PostFinding(BaseAction):
             "type": "array",
             "items": {"type": "string", "enum": build_vocabulary()},
         },
+        type_classifier={"type": "string"},
         compliance_status={
             "type": "string",
             "enum": ["PASSED", "WARNING", "FAILED", "NOT_AVAILABLE"],
@@ -323,7 +324,14 @@ class PostFinding(BaseAction):
         for r in resources:
             finding_resources.append(self.format_resource(r))
         finding["Resources"] = finding_resources
-        finding["Types"] = list(self.data["types"])
+
+        if self.data.get("type_classifier"):
+            finding["Types"] = [finding_type + "/" + self.data["type_classifier"]
+                                if len(finding_type.split("/")) == 2
+                                else finding_type
+                                for finding_type in self.data["types"]]
+        else:
+            finding["Types"] = self.data["types"]
 
         return filter_empty(finding)
 
